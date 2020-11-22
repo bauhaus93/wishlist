@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  backend:
+    image: wishlist-backend
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - backend
+    expose:
+      - 8080
+
+  frontend:
+    depends_on:
+      - backend
+    image: wishlist-frontend
+    environment:
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+    networks:
+      - backend
+    ports:
+      - 80:80
+
+networks:
+  backend:
+    name: backend
