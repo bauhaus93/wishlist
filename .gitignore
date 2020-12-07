@@ -2,4 +2,6 @@
 node_modules/
 target/
 elm-stuff/
-build/
+logs/
+package-lock.json
+Cargo.lock

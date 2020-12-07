@@ -6,8 +6,13 @@ use crate::persistence::{ProductDao, SourceDao, WishlistDao};
 lazy_static! {
     static ref PRODUCT_DAO: Option<Arc<MongoProductDao>> =
         MongoProductDao::new().map(Arc::new).ok();
-    static ref WISHLIST_DAO: Option<Arc<MongoWishlistDao>> =
-        MongoWishlistDao::new().map(Arc::new).ok();
+    static ref WISHLIST_DAO: Option<Arc<MongoWishlistDao>> = MongoWishlistDao::new()
+        .map(Arc::new)
+        .or_else(|e| {
+            error!("{}", e);
+            Err(e)
+        })
+        .ok();
     static ref SOURCE_DAO: Option<Arc<MongoSourceDao>> = MongoSourceDao::new().map(Arc::new).ok();
 }
 

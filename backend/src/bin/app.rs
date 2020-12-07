@@ -1,21 +1,23 @@
 extern crate chrono;
-extern crate env_logger;
 #[macro_use]
 extern crate log;
 extern crate dotenv;
+extern crate log4rs;
 
 extern crate wishlist;
 
-use env_logger::{fmt::Formatter, Builder};
-use log::Record;
+use log::{LevelFilter, Record};
+use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Config, Root};
+use log4rs::encode::pattern::PatternEncoder;
 use std::env;
-use std::io::Write;
 use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
-    init_logger();
-
+    if init_logger() == false {
+        return;
+    }
     match dotenv::dotenv() {
         Ok(_) => {
             info!("Loaded dotenv!");
@@ -55,16 +57,34 @@ async fn main() {
     warp::serve(routes).run(socket_addr).await;
 }
 
-fn init_logger() {
-    let format = |buf: &mut Formatter, record: &Record| {
-        let time = chrono::Local::now();
-        writeln!(
-            buf,
-            "[{} {:-5}] {}",
-            time.format("%Y-%m-%d %H:%M:%S"),
-            record.level(),
-            record.args()
-        )
+fn init_logger() -> bool {
+    let logfile = match FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(
+            "{d(%Y-%m-%d %H:%M:%S)} {h({l})} - {m}\n",
+        )))
+        .build("log/output.log")
+    {
+        Ok(lf) => lf,
+        Err(e) => {
+            println!("Could not create logging FileAppender: {}", e);
+            return false;
+        }
     };
-    Builder::from_default_env().format(format).init();
+
+    let config = match Config::builder()
+        .appender(Appender::builder().build("logfile", Box::new(logfile)))
+        .build(Root::builder().appender("logfile").build(LevelFilter::Info))
+    {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Could not create logging Config: {}", e);
+            return false;
+        }
+    };
+
+    if let Err(e) = log4rs::init_config(config) {
+        println!("Could not init logging config: {}", e);
+        return false;
+    }
+    true
 }

@@ -6,7 +6,6 @@ extern crate bson;
 extern crate thiserror;
 #[macro_use]
 extern crate lazy_static;
-extern crate ttl_cache;
 
 mod controller;
 mod error;
