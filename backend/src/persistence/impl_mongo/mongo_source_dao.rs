@@ -1,6 +1,5 @@
 use mongodb::{
     bson::{doc, oid::ObjectId, Bson},
-    options::FindOptions,
     sync::Client,
 };
 

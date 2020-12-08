@@ -43,6 +43,24 @@ impl ProductDao for MongoProductDao {
             })
     }
 
+    fn get_newest_products(&self) -> Result<Vec<Product>> {
+        let coll = self.client.database("wishlist").collection("product");
+        let options = FindOptions::builder()
+            .sort(doc! {"_id": -1})
+            .projection(doc! {"_id": false, "item_id": false})
+            .limit(10)
+            .build();
+        coll.find(None, Some(options))
+            .map_err(Error::from)
+            .map(|cursor| {
+                cursor
+                    .into_iter()
+                    .take_while(|r| r.is_ok())
+                    .map(|e| Product::from(&e.unwrap()))
+                    .collect()
+            })
+    }
+
     fn get_archived_products(&self, _page: usize, _per_page: usize) -> Result<Vec<Product>> {
         let coll = self.client.database("wishlist").collection("product");
         Ok(Vec::new())

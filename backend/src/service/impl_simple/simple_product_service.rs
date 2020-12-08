@@ -22,11 +22,15 @@ impl SimpleProductService {
 }
 
 impl ProductService for SimpleProductService {
-    fn get_products_by_wishlist_id(&self, wishlist_id: &str) -> Result<Vec<Product>> {
-        unimplemented!()
+    fn get_newest_products(&self) -> Result<Vec<Product>> {
+        self.product_dao
+            .get_newest_products()
+            .and_then(|prods| self.source_dao.load_source_for_products(prods))
+            .map_err(Error::from)
     }
-
     fn get_archived_products(&self, page: usize, per_page: usize) -> Result<Vec<Product>> {
-        unimplemented!()
+        self.product_dao
+            .get_archived_products(page, per_page)
+            .map_err(Error::from)
     }
 }

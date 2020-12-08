@@ -1,5 +1,4 @@
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::sync::Arc;
 
 use crate::controller::{Error, Result, WishlistController};
 use crate::model::Wishlist;
