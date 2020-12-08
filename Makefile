@@ -36,10 +36,6 @@ frontend_volumes:
 	docker cp $(WWW_DIR) $(TMP_CONTAINER):/var; \
 	docker rm $(TMP_CONTAINER)
 
-volume_shell:
-	docker container run -it --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx -v $(PROJECT_NAME)_frontend_public:/var/www alpine sh; \
-	docker rm $(TMP_CONTAINER)
-
 service:
 	docker-compose --env-file .env -p $(PROJECT_NAME) up -d
 
@@ -58,10 +54,10 @@ logs:
 	docker rm $(TMP_CONTAINER)
 
 logs_nginx_access: logs
-	cat $(LOG_DIR)/nginx/access.log
+	cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
 logs_nginx_error: logs
-	cat $(LOG_DIR)/nginx/error.log
+	cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-error.log
 
 logs_backend: logs
 	cat $(LOG_DIR)/log/output.log
