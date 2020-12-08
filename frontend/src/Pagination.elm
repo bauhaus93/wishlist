@@ -52,11 +52,11 @@ update msg model =
                         maybe_max_page =
                             case ( total_items, model.max_page ) of
                                 ( Just new_max, Just old_max ) ->
-                                    Just (new_max // model.per_page)
+                                    Just ((new_max + modBy new_max model.per_page) // model.per_page)
 
                                 ( Just new_max, Nothing ) ->
                                     total_items
-                                        |> Maybe.andThen (\i -> Just (i // model.per_page))
+                                        |> Maybe.andThen (\i -> Just ((i + modBy i model.per_page) // model.per_page))
 
                                 ( Nothing, Just old_max ) ->
                                     Just old_max

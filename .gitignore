@@ -3,5 +3,7 @@ node_modules/
 target/
 elm-stuff/
 logs/
+build/
 package-lock.json
 Cargo.lock
+elm.min.js
