@@ -1,6 +1,5 @@
 use mongodb::bson::document::Document;
 use serde::Serialize;
-use std::iter::Iterator;
 
 #[derive(Serialize, Clone)]
 pub struct Datapoint {

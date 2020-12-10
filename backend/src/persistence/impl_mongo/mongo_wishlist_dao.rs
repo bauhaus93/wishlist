@@ -1,5 +1,5 @@
 use mongodb::{bson::doc, options::FindOneOptions, sync::Client};
-use std::convert::TryFrom;
+use std::sync::Arc;
 
 use super::get_mongo_client;
 use crate::model::Wishlist;
@@ -7,14 +7,14 @@ use crate::persistence::{Error, Result, WishlistDao};
 
 #[derive(Clone)]
 pub struct MongoWishlistDao {
-    client: Client,
+    client: Arc<Client>,
 }
 
 impl MongoWishlistDao {
     pub fn new() -> Result<MongoWishlistDao> {
         info!("Creating new mongodb wishlist dao");
         Ok(MongoWishlistDao {
-            client: get_mongo_client()?,
+            client: get_mongo_client().ok_or(Error::ClientUninitialized)?,
         })
     }
 }

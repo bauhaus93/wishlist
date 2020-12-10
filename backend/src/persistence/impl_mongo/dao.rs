@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use super::{MongoProductDao, MongoSourceDao, MongoWishlistDao};
-use crate::persistence::{ProductDao, SourceDao, WishlistDao};
 
 lazy_static! {
     static ref PRODUCT_DAO: Option<Arc<MongoProductDao>> =

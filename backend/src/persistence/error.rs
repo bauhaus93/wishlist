@@ -37,6 +37,9 @@ pub enum Error {
 
     #[error("Can't connect to database: Environment variable 'DATABASE_URL' not set!")]
     DatabaseURLNotSet,
+
+    #[error("Could not initialize client to DB!")]
+    ClientUninitialized,
 }
 
 impl Into<ErrorMessage> for &Error {
