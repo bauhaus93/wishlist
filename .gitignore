@@ -7,3 +7,4 @@ build/
 package-lock.json
 Cargo.lock
 elm.min.js
+tags

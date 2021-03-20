@@ -9,7 +9,7 @@ CONTAINER_BACKEND_LOG_DIR = /app/log
 CONTAINER_FRONTEND_LOG_DIR = /var/log/nginx
 TMP_CONTAINER = container-tmp
 
-.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend
+.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend tags
 
 rebuild: backend_base backend frontend_base frontend
 
@@ -64,7 +64,10 @@ logs_backend: logs
 
 clean:
 	docker image prune -f --filter label=stage=wishlist-build; \
-	rm -rf $(LOG_DIR)
+	rm -rf $(LOG_DIR) tags;
 
 attach_frontend:
 	docker exec -i -t $(PROJECT_NAME)_frontend_1 sh
+
+tags:
+	ctags -R backend/src
