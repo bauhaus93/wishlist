@@ -10,11 +10,18 @@ type ApiRoute
     | NewProducts
     | ProductArchive ArchiveQuery
     | Timeline TimelineQuery
+    | ProductsByCategory CategoryQuery
+    | ListCategories
 
 
 type alias ArchiveQuery =
     { page : Maybe Int
     , per_page : Maybe Int
+    }
+
+
+type alias CategoryQuery =
+    { name : Maybe String
     }
 
 
@@ -29,6 +36,11 @@ timeline_query =
     Query.map2 TimelineQuery (Query.int "from_timestamp") (Query.int "count")
 
 
+category_query : Query.Parser CategoryQuery
+category_query =
+    Query.map CategoryQuery (Query.string "category")
+
+
 archive_query : Query.Parser ArchiveQuery
 archive_query =
     Query.map2 ArchiveQuery (Query.int "page") (Query.int "per_page")
@@ -40,6 +52,8 @@ parser =
         [ map LastWishlist (s "api" </> s "wishlist" </> s "last")
         , map NewProducts (s "api" </> s "product" </> s "newest")
         , map ProductArchive (s "api" </> s "product" </> s "archive" <?> archive_query)
+        , map ProductsByCategory (s "api" </> s "product" </> s "category" <?> category_query)
+        , map ListCategories (s "api" </> s "category" </> s "list")
         , map Timeline (s "api" </> s "timeline" </> s "points" <?> timeline_query)
         ]
 
@@ -64,6 +78,12 @@ to_string route =
                 ProductArchive _ ->
                     [ "api", "product", "archive" ]
 
+                ProductsByCategory _ ->
+                    [ "api", "product", "category" ]
+
+                ListCategories ->
+                    [ "api", "category", "list" ]
+
                 Timeline _ ->
                     [ "api", "wishlist", "values" ]
 
@@ -73,6 +93,14 @@ to_string route =
                     [ ( "page", String.fromInt <| Maybe.withDefault 1 q.page )
                     , ( "per_page", String.fromInt <| Maybe.withDefault 10 q.per_page )
                     ]
+
+                ProductsByCategory q ->
+                    case q.name of
+                        Just name ->
+                            [ ( "category", name ) ]
+
+                        Nothing ->
+                            []
 
                 Timeline q ->
                     [ ( "from_timestamp", String.fromInt <| Maybe.withDefault 0 q.from_timestamp )

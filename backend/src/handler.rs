@@ -85,31 +85,33 @@ async fn get_categories(client: &Client) -> Result<Vec<Category>> {
     Ok(categories)
 }
 
-async fn get_category_by_name(client: &Client, name: String) -> Result<Category> {
-    if name == "null" {
-        return Ok(Category::default());
-    }
+async fn get_category_by_name(client: &Client, name: &str) -> Result<Category> {
     let coll = client.database("wishlist").collection("category");
     let filter = doc! {
         "name": name
     };
-    
     coll.find_one(Some(filter), None).await
         .map_err(Error::from)
         .and_then(|r| r.ok_or(Error::EmptyResult))
         .map(|r| Category::from(&r))
 }
 
-async fn get_products_by_category_name(client: &Client, name: String) -> Result<Vec<Product>> {
-    let category = get_category_by_name(client, name).await?;
-    get_products_by_category(client, &category).await
+async fn get_products_by_category_name(client: &Client, name: Option<&str>) -> Result<Vec<Product>> {
+    let category = match name {
+        Some(n) => Some(get_category_by_name(client,n).await?),
+        None => None
+    };
+    get_products_by_category(client, category.as_ref()).await
 }
 
-async fn get_products_by_category(client: &Client, category: &Category) -> Result<Vec<Product>> {
-    let id = category.get_id().ok_or(Error::FieldNotLoaded("wishlist", "product_ids"))?;
-
-    let filter = doc! {
-        "category": id 
+async fn get_products_by_category(client: &Client, category: Option<&Category>) -> Result<Vec<Product>> {
+    let filter = match category {
+        Some(c) => doc! {
+            "category": c.get_id().ok_or(Error::FieldNotLoaded("wishlist", "product_ids"))?,
+        },
+        None => doc! {
+            "category": mongodb::bson::Bson::Null
+        }
     };
     load_products(client, Some(filter), None).await
 }

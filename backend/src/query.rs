@@ -10,8 +10,8 @@ pub struct PaginationQuery {
 
 #[derive(Deserialize)]
 pub struct CategoryQuery {
-    #[serde(default = "default_category")]
-    category: String,
+    #[serde(default = "Option::default")]
+    category: Option<String>,
 }
 
 impl PaginationQuery {
@@ -28,8 +28,11 @@ impl PaginationQuery {
 }
 
 impl CategoryQuery {
-    pub fn get_category(&self) -> String {
-        self.category.clone()
+    pub fn get_category(&self) -> Option<&str> {
+        match &self.category {
+            Some(s) => Some(s.as_ref()),
+            None => None,
+        }
     }
 }
 
@@ -39,8 +42,4 @@ fn default_page() -> u64 {
 
 fn default_page_size() -> u64 {
     10
-}
-
-fn default_category() -> String {
-    "null".to_string()
 }
