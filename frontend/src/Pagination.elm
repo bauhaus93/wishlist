@@ -208,3 +208,14 @@ to_total_max_items : Http.Metadata -> Maybe Int
 to_total_max_items meta =
     Dict.get (String.toLower "X-Paging-TotalRecordCount") meta.headers
         |> Maybe.andThen String.toInt
+        |> Maybe.andThen zero_to_nothing
+
+
+zero_to_nothing : Int -> Maybe Int
+zero_to_nothing num =
+    case num of
+        0 ->
+            Nothing
+
+        n ->
+            Just n

@@ -2,31 +2,51 @@ use std;
 use std::sync::Arc;
 use warp;
 use warp::Filter;
+use mongodb::Client;
 
 use super::Result;
-use crate::controller::{
-    ProductController, SimpleProductController, SimpleWishlistController, WishlistController,
-};
 use crate::reject::handle_rejection;
+use crate::handler::*;
 
 macro_rules! reply_future {
-    ($controller:ident, $method:ident) => {{
-        |controller: Arc<dyn $controller>| async move {
-            match controller.$method() {
+    ($function:ident) => {{
+        | db: Arc<Client> | async move  {
+            match $function(db).await {
                 Ok(output) => Ok(warp::reply::json(&output)),
                 Err(e) => Err(warp::reject::custom(e)),
             }
-        }
-    }};
+        }}
+    };
 }
 
-pub async fn create_routes() -> Result<impl warp::Filter<Extract = impl warp::Reply> + Clone> {
-    let wishlist_controller: Arc<dyn WishlistController> =
-        Arc::new(SimpleWishlistController::new()?);
-    let product_controller: Arc<dyn ProductController> = Arc::new(SimpleProductController::new()?);
+macro_rules! reply_future_pagination {
+    ($content_function:ident, $count_function:ident) => {{
+        | query, db: Arc<Client> | async move  {
+            match $content_function(query, db.clone()).await {
+                Ok(output) => {
+                    let reply = warp::reply::json(&output);
+                    let count = match $count_function(db).await {
+                        Ok(c) => c,
+                        Err(e) => {
+                            error!("Could not get # of items for pagination: {}", e);
+                            0
+                        }
+                    };
+                    Ok(warp::reply::with_header(reply, "X-Paging-TotalRecordCount", count))
+                },
+                Err(e)  => {
+                    Err(warp::reject::custom(e))
+                }
+            }
+        }}
+    };
+}
 
-    let wishlist_controller_filter = warp::any().map(move || wishlist_controller.clone());
-    let product_controller_filter = warp::any().map(move || product_controller.clone());
+
+
+pub async fn create_routes(db: Arc<Client>) -> Result<impl warp::Filter<Extract = impl warp::Reply> + Clone> {
+
+    let with_db = warp::any().map(move || db.clone());
 
     let log_filter = warp::log("api");
 
@@ -35,18 +55,29 @@ pub async fn create_routes() -> Result<impl warp::Filter<Extract = impl warp::Re
         .and(warp::path("wishlist"))
         .and(warp::path("last"))
         .and(warp::path::end())
-        .and(wishlist_controller_filter.clone())
-        .and_then(reply_future!(WishlistController, get_last_wishlist));
+        .and(with_db.clone())
+        .and_then(reply_future!(handle_get_last_wishlist));
 
     let route_get_newest_products = warp::get()
         .and(warp::path("api"))
         .and(warp::path("product"))
         .and(warp::path("newest"))
-        .and(product_controller_filter.clone())
-        .and_then(reply_future!(ProductController, get_newest_products));
+        .and(warp::path::end())
+        .and(with_db.clone())
+        .and_then(reply_future!(handle_get_newest_products));
+
+    let route_get_archived_products = warp::get()
+        .and(warp::path("api"))
+        .and(warp::path("product"))
+        .and(warp::path("archive"))
+        .and(warp::path::end())
+        .and(warp::query())
+        .and(with_db.clone())
+        .and_then(reply_future_pagination!(handle_get_archived_products, handle_get_archive_product_count));
 
     let routes = route_get_last_wishlist
         .or(route_get_newest_products)
+        .or(route_get_archived_products)
         .recover(handle_rejection)
         .with(log_filter);
 

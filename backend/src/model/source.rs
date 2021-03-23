@@ -1,7 +1,7 @@
 use mongodb::bson::{document::Document, oid::ObjectId};
 use serde::Serialize;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct Source {
     #[serde(skip)]
     id: Option<ObjectId>,

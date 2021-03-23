@@ -1,14 +1,14 @@
 use std::convert::Infallible;
 use warp::http::StatusCode;
 
-use crate::controller::Error as ControllerError;
 use crate::model::ErrorMessage;
+use crate::Error;
 
 pub async fn handle_rejection(rej: warp::Rejection) -> Result<impl warp::Reply, Infallible> {
     let msg;
     if rej.is_not_found() {
         msg = get_not_found_message();
-    } else if let Some(err) = rej.find::<ControllerError>() {
+    } else if let Some(err) = rej.find::<Error>() {
         warn!("{}", err);
         msg = err.into();
     } else if let Some(err) = rej.find::<warp::filters::body::BodyDeserializeError>() {

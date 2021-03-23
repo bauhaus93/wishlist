@@ -6,7 +6,12 @@ pub trait ProductDao: Send + Sync {
     fn get_products_by_id(&self, ids: &[ObjectId]) -> Result<Vec<Product>>;
 
     fn get_newest_products(&self) -> Result<Vec<Product>>;
-    fn get_archived_products(&self, page: usize, per_page: usize) -> Result<Vec<Product>>;
+    fn get_products_not_in_wishlist(
+        &self,
+        wishlist: &Wishlist,
+        page: usize,
+        per_page: usize,
+    ) -> Result<Vec<Product>>;
     fn get_products_for_wishlist(&self, wishlist: &Wishlist) -> Result<Vec<Product>> {
         wishlist
             .get_product_ids()

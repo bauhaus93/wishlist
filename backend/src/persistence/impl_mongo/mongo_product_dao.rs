@@ -6,7 +6,7 @@ use mongodb::{
 use std::sync::Arc;
 
 use super::get_mongo_client;
-use crate::model::Product;
+use crate::model::{Product, Wishlist};
 use crate::persistence::{Error, ProductDao, Result};
 
 #[derive(Clone)]
@@ -62,8 +62,34 @@ impl ProductDao for MongoProductDao {
             })
     }
 
-    fn get_archived_products(&self, _page: usize, _per_page: usize) -> Result<Vec<Product>> {
+    fn get_products_not_in_wishlist(
+        &self,
+        wishlist: &Wishlist,
+        page: usize,
+        per_page: usize,
+    ) -> Result<Vec<Product>> {
         let coll = self.client.database("wishlist").collection("product");
-        Ok(Vec::new())
+
+        let product_ids = wishlist
+            .get_product_ids()
+            .ok_or(Error::FieldNotLoaded("wishlist", "product_ids"))?;
+        let filter = doc! {
+        "_id": {"$not": {"$in": product_ids} } };
+
+        let options = FindOptions::builder()
+            .sort(doc! { "_id": -1})
+            .projection(doc! {"_id": false, "item_id": false})
+            .skip(((page - 1) * per_page) as i64)
+            .limit(per_page as i64)
+            .build();
+        coll.find(Some(filter), Some(options))
+            .map_err(Error::from)
+            .map(|cursor| {
+                cursor
+                    .into_iter()
+                    .take_while(|r| r.is_ok())
+                    .map(|e| Product::from(&e.unwrap()))
+                    .collect()
+            })
     }
 }

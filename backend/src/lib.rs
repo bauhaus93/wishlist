@@ -4,16 +4,13 @@ extern crate warp;
 extern crate log;
 extern crate bson;
 extern crate thiserror;
-#[macro_use]
-extern crate lazy_static;
 
-mod controller;
 mod error;
+mod handler;
 mod model;
-mod persistence;
+mod query;
 mod reject;
 mod routes;
-mod service;
 
 pub use self::error::{Error, Result};
 pub use self::routes::create_routes;

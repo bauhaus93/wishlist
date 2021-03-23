@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use super::Source;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct Product {
     #[serde(skip)]
     id: Option<ObjectId>,
@@ -47,5 +47,11 @@ impl From<&Document> for Product {
             source_id: doc.get_object_id("source").map(|id| id.clone()).ok(),
             source: None,
         }
+    }
+}
+
+impl From<Document> for Product {
+    fn from(doc: Document) -> Self {
+        Self::from(&doc)
     }
 }

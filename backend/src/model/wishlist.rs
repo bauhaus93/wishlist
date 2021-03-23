@@ -4,7 +4,7 @@ use std::iter::Iterator;
 
 use super::Product;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Debug)]
 pub struct Wishlist {
     #[serde(skip)]
     id: Option<ObjectId>,

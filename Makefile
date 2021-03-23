@@ -33,6 +33,7 @@ frontend_base:
 frontend_volumes:
 	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx -v $(PROJECT_NAME)_frontend_public:/var/www alpine && \
 	docker cp $(NGINX_DIR)/nginx.conf $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
+	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types && \
 	docker cp $(WWW_DIR) $(TMP_CONTAINER):/var; \
 	docker rm $(TMP_CONTAINER)
 
