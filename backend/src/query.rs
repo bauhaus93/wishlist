@@ -8,6 +8,12 @@ pub struct PaginationQuery {
     per_page: u64,
 }
 
+#[derive(Deserialize)]
+pub struct CategoryQuery {
+    #[serde(default = "default_category")]
+    category: String,
+}
+
 impl PaginationQuery {
     pub fn get_offset(&self) -> u64 {
         if self.page <= 1 {
@@ -21,10 +27,20 @@ impl PaginationQuery {
     }
 }
 
+impl CategoryQuery {
+    pub fn get_category(&self) -> String {
+        self.category.clone()
+    }
+}
+
 fn default_page() -> u64 {
     1
 }
 
 fn default_page_size() -> u64 {
     10
+}
+
+fn default_category() -> String {
+    "null".to_string()
 }

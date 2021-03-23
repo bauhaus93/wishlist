@@ -20,6 +20,8 @@ pub struct Product {
     #[serde(skip)]
     source_id: Option<ObjectId>,
     source: Option<Source>,
+    #[serde(skip)]
+    category_id: Option<ObjectId>,
 }
 
 impl Product {
@@ -46,6 +48,7 @@ impl From<&Document> for Product {
             last_seen: doc.get_i32("last_seen").ok(),
             source_id: doc.get_object_id("source").map(|id| id.clone()).ok(),
             source: None,
+            category_id: doc.get_object_id("category").map(|id| id.clone()).ok(),
         }
     }
 }

@@ -5,8 +5,8 @@ use std::sync::Arc;
 use tokio::stream::StreamExt;
 
 use super::{Result, Error};
-use crate::query::PaginationQuery;
-use crate::model::{Source, Wishlist, Product};
+use crate::query::{CategoryQuery, PaginationQuery};
+use crate::model::{Category, Source, Wishlist, Product};
 
 pub async fn handle_get_last_wishlist(client: Arc<Client>) -> Result<Wishlist> {
     let mut last_wishlist = get_last_wishlist(&client).await?;
@@ -51,6 +51,14 @@ pub async fn handle_get_archive_product_count(client: Arc<Client>) -> Result<u64
     count_documents(&client.database("wishlist").collection("product"), Some(filter)).await
 }
 
+pub async fn handle_get_categories(client: Arc<Client>) -> Result<Vec<Category>> {
+    get_categories(&client).await
+}
+
+pub async fn handle_get_products_by_category_name(query: CategoryQuery, client: Arc<Client>) -> Result<Vec<Product>> {
+    get_products_by_category_name(&client, query.get_category()).await
+}
+
 async fn count_documents(collection: &Collection, filter: Option<Document>) -> Result<u64> {
     collection.count_documents(filter, None).await
         .map(|n| n as u64)
@@ -67,6 +75,43 @@ async fn extract_cursor_results<T: From<Document> + std::fmt::Debug>(mut cursor:
         }
     }
     results
+}
+
+
+async fn get_categories(client: &Client) -> Result<Vec<Category>> {
+    let coll = client.database("wishlist").collection("category");
+    let cursor = coll.find(None, None).await?;
+    let categories = extract_cursor_results(cursor).await;
+    Ok(categories)
+}
+
+async fn get_category_by_name(client: &Client, name: String) -> Result<Category> {
+    if name == "null" {
+        return Ok(Category::default());
+    }
+    let coll = client.database("wishlist").collection("category");
+    let filter = doc! {
+        "name": name
+    };
+    
+    coll.find_one(Some(filter), None).await
+        .map_err(Error::from)
+        .and_then(|r| r.ok_or(Error::EmptyResult))
+        .map(|r| Category::from(&r))
+}
+
+async fn get_products_by_category_name(client: &Client, name: String) -> Result<Vec<Product>> {
+    let category = get_category_by_name(client, name).await?;
+    get_products_by_category(client, &category).await
+}
+
+async fn get_products_by_category(client: &Client, category: &Category) -> Result<Vec<Product>> {
+    let id = category.get_id().ok_or(Error::FieldNotLoaded("wishlist", "product_ids"))?;
+
+    let filter = doc! {
+        "category": id 
+    };
+    load_products(client, Some(filter), None).await
 }
 
 async fn get_wishlist(client: &Client, filter: Option<Document>, options: Option<FindOneOptions>) -> Result<Wishlist> {

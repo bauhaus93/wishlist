@@ -19,6 +19,17 @@ macro_rules! reply_future {
     };
 }
 
+macro_rules! reply_future_with_query {
+    ($function:ident) => {{
+        | query, db: Arc<Client> | async move  {
+            match $function(query, db).await {
+                Ok(output) => Ok(warp::reply::json(&output)),
+                Err(e) => Err(warp::reject::custom(e)),
+            }
+        }}
+    };
+}
+
 macro_rules! reply_future_pagination {
     ($content_function:ident, $count_function:ident) => {{
         | query, db: Arc<Client> | async move  {
@@ -75,9 +86,28 @@ pub async fn create_routes(db: Arc<Client>) -> Result<impl warp::Filter<Extract 
         .and(with_db.clone())
         .and_then(reply_future_pagination!(handle_get_archived_products, handle_get_archive_product_count));
 
+    let route_get_products_by_category_name = warp::get()
+        .and(warp::path("api"))
+        .and(warp::path("product"))
+        .and(warp::path("category"))
+        .and(warp::path::end())
+        .and(warp::query())
+        .and(with_db.clone())
+        .and_then(reply_future_with_query!(handle_get_products_by_category_name));
+
+    let route_get_categories = warp::get()
+        .and(warp::path("api"))
+        .and(warp::path("category"))
+        .and(warp::path("list"))
+        .and(warp::path::end())
+        .and(with_db.clone())
+        .and_then(reply_future!(handle_get_categories));
+
     let routes = route_get_last_wishlist
         .or(route_get_newest_products)
         .or(route_get_archived_products)
+        .or(route_get_products_by_category_name)
+        .or(route_get_categories)
         .recover(handle_rejection)
         .with(log_filter);
 
