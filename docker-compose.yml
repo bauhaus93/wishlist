@@ -27,7 +27,7 @@ services:
       - frontend_nginx_conf:/etc/nginx
       - frontend_public:/var/www
       - log_nginx:/var/log/nginx
-      - letsencrypt-volume:/etc/letsencrypt
+      - letsencrypt_volume:/etc/letsencrypt
 
 networks:
   backend:
@@ -37,4 +37,4 @@ volumes:
   frontend_nginx_conf:
   log_nginx:
   log_backend:
-  letsencrypt-volume:
+  letsencrypt_volume:
