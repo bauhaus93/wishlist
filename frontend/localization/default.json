@@ -13,6 +13,9 @@
     "TIMELINE": {
       "CAPTION": "Timeline"
     },
+    "CATEGORY": {
+      "CAPTION": "Kategorie"
+    },
     "ERROR": {
       "CAPTION": "Fehler"
     }
@@ -22,6 +25,7 @@
     "HOME": "Aktuell",
     "NEW_PRODUCTS": "Neues",
     "ARCHIVE": "Archiv",
+    "CATEGORY": "Kategorie",
     "TIMELINE": "Timeline"
   },
 
@@ -29,13 +33,15 @@
     "COUNT": "Anzahl",
     "VALUE": "Wert",
     "WISHLIST_NAME": "Zweck",
-    "DATE_RANGE": "Vorhanden",
+    "DATE_RANGE": "Zeitspanne",
     "DURATION": "Dauer",
     "TIME": "Zeit",
     "TIMESPAN": "Zeitraum",
     "LAST_30DAYS": "30 Tage",
     "LAST_100DAYS": "100 Tage",
-    "OVERALL": "Gesamt"
+    "OVERALL": "Gesamt",
+    "CATEGORY": "Kategorie",
+    "NO_CATEGORY": "Unkategorisiert"
   },
 
   "ERROR_MESSAGE": {

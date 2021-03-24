@@ -11,6 +11,7 @@ import Page.Empty as Empty
 import Page.Error as Error
 import Page.Home as Home
 import Page.NewProducts as NewProducts
+import Page.ProductsByCategory as ProductsByCategory
 import Page.Timeline as Timeline
 import Route
 import Url
@@ -21,6 +22,7 @@ type Model
     | NewProducts NewProducts.Model
     | Archive Archive.Model
     | Timeline Timeline.Model
+    | ProductsByCategory ProductsByCategory.Model
     | Error Error.Model
     | Redirect Nav.Key
 
@@ -31,6 +33,7 @@ type Msg
     | GotHomeMsg Home.Msg
     | GotNewProductsMsg NewProducts.Msg
     | GotArchiveMsg Archive.Msg
+    | GotProductsByCategoryMsg ProductsByCategory.Msg
     | GotTimelineMsg Timeline.Msg
     | GotErrorMsg Error.Msg
 
@@ -64,6 +67,10 @@ update msg model =
         ( GotTimelineMsg sub_msg, Timeline timeline ) ->
             Timeline.update sub_msg timeline
                 |> update_with Timeline GotTimelineMsg model
+
+        ( GotProductsByCategoryMsg sub_msg, ProductsByCategory prod_by_cat ) ->
+            ProductsByCategory.update sub_msg prod_by_cat
+                |> update_with ProductsByCategory GotProductsByCategoryMsg model
 
         ( GotErrorMsg sub_msg, Error error ) ->
             Error.update sub_msg error
@@ -104,6 +111,9 @@ view model =
         Timeline timeline ->
             view_page Page.Timeline GotTimelineMsg (Timeline.view timeline)
 
+        ProductsByCategory prod_by_cat ->
+            view_page Page.ProductsByCategory GotProductsByCategoryMsg (ProductsByCategory.view prod_by_cat)
+
         Error error ->
             view_page Page.Error GotErrorMsg (Error.view error)
 
@@ -126,6 +136,9 @@ to_nav_key model =
         Timeline timeline ->
             Timeline.to_nav_key timeline
 
+        ProductsByCategory prod_by_cat ->
+            ProductsByCategory.to_nav_key prod_by_cat
+
         Error error ->
             Error.to_nav_key error
 
@@ -147,6 +160,9 @@ to_last_error model =
 
         Timeline timeline ->
             Timeline.to_last_error timeline
+
+        ProductsByCategory prod_by_cat ->
+            ProductsByCategory.to_last_error prod_by_cat
 
         Error error ->
             Error.to_last_error error
@@ -177,6 +193,10 @@ change_route maybe_route model =
         Just Route.Timeline ->
             Timeline.init (to_nav_key model)
                 |> update_with Timeline GotTimelineMsg model
+
+        Just Route.ProductsByCategory ->
+            ProductsByCategory.init (to_nav_key model)
+                |> update_with ProductsByCategory GotProductsByCategoryMsg model
 
         Just Route.Error ->
             case to_last_error model of

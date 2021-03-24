@@ -11,6 +11,7 @@ type Page
     | NewProducts
     | Archive
     | Timeline
+    | ProductsByCategory
     | Error
     | Other
 
@@ -39,6 +40,7 @@ navbar_elements : List { route : Route.Route, label : String }
 navbar_elements =
     [ { route = Route.Home, label = "{{ NAVBAR.HOME }}" }
     , { route = Route.NewProducts, label = "{{ NAVBAR.NEW_PRODUCTS }}" }
+    , { route = Route.ProductsByCategory, label = "{{ NAVBAR.CATEGORY }}" }
     , { route = Route.Archive, label = "{{ NAVBAR.ARCHIVE }}" }
     , { route = Route.Timeline, label = "{{ NAVBAR.TIMELINE }}" }
     ]
