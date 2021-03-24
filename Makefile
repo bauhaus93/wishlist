@@ -8,7 +8,7 @@ LOG_DIR = $(PWD)/logs
 CONTAINER_BACKEND_LOG_DIR = /app/log
 CONTAINER_FRONTEND_LOG_DIR = /var/log/nginx
 CONTAINER_LETSENCRYPT_DIR = /etc/letsencrypt
-VOLUME_LETSENCRYPT = letsencrypt-volume
+VOLUME_LETSENCRYPT = wishlist-letsencrypt-volume
 TMP_CONTAINER = container-tmp
 
 .PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend tags cert

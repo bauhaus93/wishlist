@@ -24,10 +24,10 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - frontend_nginx_conf:/etc/nginx/
+      - frontend_nginx_conf:/etc/nginx
       - frontend_public:/var/www
       - log_nginx:/var/log/nginx
-      - letsencrypt-volume:/etc/nginx/letsencrypt
+      - letsencrypt-volume:/etc/letsencrypt
 
 networks:
   backend:
