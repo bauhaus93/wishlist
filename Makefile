@@ -7,9 +7,11 @@ LOG_DIR = $(PWD)/logs
 
 CONTAINER_BACKEND_LOG_DIR = /app/log
 CONTAINER_FRONTEND_LOG_DIR = /var/log/nginx
+CONTAINER_LETSENCRYPT_DIR = /etc/letsencrypt
+VOLUME_LETSENCRYPT = letsencrypt-volume
 TMP_CONTAINER = container-tmp
 
-.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend tags
+.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend tags cert
 
 rebuild: backend_base backend frontend_base frontend
 
@@ -53,6 +55,13 @@ logs:
 	docker cp $(TMP_CONTAINER):$(CONTAINER_BACKEND_LOG_DIR) $(LOG_DIR) && \
 	docker cp $(TMP_CONTAINER):$(CONTAINER_FRONTEND_LOG_DIR) $(LOG_DIR); \
 	docker rm $(TMP_CONTAINER)
+
+cert_new: stop
+	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
+	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d winglers-liste.info -d www.winglers-liste.info
+
+cert_renew: stop
+	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
 
 logs_nginx_access: logs
 	cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
