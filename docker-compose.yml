@@ -22,6 +22,7 @@ services:
       - backend
     ports:
       - 80:80
+      - 443:443
     volumes:
       - frontend_nginx_conf:/etc/nginx/
       - frontend_public:/var/www
