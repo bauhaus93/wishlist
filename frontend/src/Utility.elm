@@ -114,7 +114,7 @@ format_currency unit value =
         fractional_str =
             case fractional of
                 0 ->
-                    ""
+                    ".00"
 
                 n ->
                     "."
@@ -123,7 +123,13 @@ format_currency unit value =
                                     String.fromInt fractional ++ "0"
 
                                 False ->
-                                    String.fromInt fractional
+                                    (if n < 10 then
+                                        "0"
+
+                                     else
+                                        ""
+                                    )
+                                        ++ String.fromInt fractional
                            )
     in
     unit
