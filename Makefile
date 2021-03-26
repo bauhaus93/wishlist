@@ -13,9 +13,8 @@ VOLUME_WWW = wishlist_www_volume
 TMP_CONTAINER = container-tmp
 LOG_PRODUCER = logs_remote
 CMD_ACCESS_LOGS = @cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
-NGINX_CONF = nginx-test.conf
 
-.PHONY: backend_base backend frontend frontend_base nginx_conf rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert remote
+.PHONY: backend_base backend frontend frontend_base nginx_conf nginx_conf_test rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert remote
 
 rebuild: backend_base backend frontend_base frontend
 
@@ -38,7 +37,13 @@ frontend_base:
 
 nginx_conf:
 	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx alpine && \
-	docker cp $(NGINX_DIR)/$(NGINX_CONF) $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
+	docker cp $(NGINX_DIR)/nginx.conf $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
+	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types; \
+	docker rm $(TMP_CONTAINER)
+
+nginx_conf_test:
+	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx alpine && \
+	docker cp $(NGINX_DIR)/nginx-test.conf $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
 	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types; \
 	docker rm $(TMP_CONTAINER)
 
