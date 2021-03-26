@@ -14,8 +14,10 @@ view_product_table shorten_names products =
             List.map view_item products
                 |> List.foldr (++) []
     in
-    table [ class "table table-responsive table-sm" ]
-        [ tbody [] item_views ]
+    div [ class "table-responsive" ]
+        [ table [ class "table table-sm" ]
+            [ tbody [] item_views ]
+        ]
 
 
 view_item : Product -> List (Html msg)

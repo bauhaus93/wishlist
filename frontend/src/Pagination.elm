@@ -101,10 +101,10 @@ view model =
                             List.range 2 (model.curr_page - 1)
                                 |> List.reverse
                                 |> List.take
-                                    (3
-                                        + 3
+                                    (2
+                                        + 2
                                         - (Basics.max 0 (max_page - model.curr_page - 1)
-                                            |> Basics.min 3
+                                            |> Basics.min 2
                                           )
                                     )
                                 |> List.reverse
@@ -112,10 +112,10 @@ view model =
                         range_top =
                             List.range (model.curr_page + 1) (max_page - 1)
                                 |> List.take
-                                    (3
-                                        + 3
+                                    (2
+                                        + 2
                                         - (Basics.max 0 (model.curr_page - 1)
-                                            |> Basics.min 3
+                                            |> Basics.min 2
                                           )
                                     )
 
