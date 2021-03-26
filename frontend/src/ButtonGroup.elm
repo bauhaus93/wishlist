@@ -52,7 +52,7 @@ view_button_group_dropdown dropdown_label dropdown_buttons =
             , span [ class "caret" ] []
             ]
         , ul [ class "dropdown-menu" ]
-            (List.map (\b -> li [] [ b ]) dropdown_buttons)
+            (List.map (\b -> li [ class "dropdown-item" ] [ b ]) dropdown_buttons)
         ]
 
 

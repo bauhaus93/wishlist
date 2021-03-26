@@ -93,7 +93,7 @@ view model =
     in
     { title = "{{ PAGE.TITLE }}"
     , caption = "{{ PAGE.CATEGORY.CAPTION }}"
-    , content = div [] [ div [ class "row my-3" ] [ div [ class "col" ] [ view_categories model.active_category model.categories active_product_count ] ], wrap_row_col product_table ]
+    , content = div [] <| List.map wrap_row_col [ view_categories model.active_category model.categories active_product_count, product_table ]
     }
 
 
@@ -149,7 +149,9 @@ view_categories maybe_active_category maybe_categories active_product_count =
                         , " (" ++ String.fromInt active_product_count ++ ")"
                         ]
             in
-            view_button_group_dropdown ("{{ LABEL.CATEGORY }}" ++ active_string) <| buttons view_button_dropdown
+            div [ class "fixed-bottom my-3 mx-3 text-right" ]
+                [ view_button_group_dropdown ("{{ LABEL.CATEGORY }}" ++ active_string) <| buttons view_button_dropdown
+                ]
 
         Nothing ->
             div [] []
