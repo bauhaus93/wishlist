@@ -10,8 +10,10 @@ CONTAINER_FRONTEND_LOG_DIR = /var/log/nginx
 CONTAINER_LETSENCRYPT_DIR = /etc/letsencrypt
 VOLUME_LETSENCRYPT = wishlist_letsencrypt_volume
 TMP_CONTAINER = container-tmp
+LOG_PRODUCER=logs_remote
+CMD_ACCESS_LOGS=@cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
-.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs logs_nginx_access logs_nginx_error logs_backend tags cert
+.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert
 
 rebuild: backend_base backend frontend_base frontend
 
@@ -48,13 +50,17 @@ stop:
 status:
 	docker-compose -p $(PROJECT_NAME) ps
 
-logs:
-	rm -rf $(LOG_DIR) && \
+logs_local:
+	@rm -rf $(LOG_DIR) && \
 	mkdir -p $(LOG_DIR) && \
-	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_log_nginx:$(CONTAINER_FRONTEND_LOG_DIR) -v $(PROJECT_NAME)_log_backend:$(CONTAINER_BACKEND_LOG_DIR) alpine && \
+	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_log_nginx:$(CONTAINER_FRONTEND_LOG_DIR) -v $(PROJECT_NAME)_log_backend:$(CONTAINER_BACKEND_LOG_DIR) alpine > /dev/null && \
 	docker cp $(TMP_CONTAINER):$(CONTAINER_BACKEND_LOG_DIR) $(LOG_DIR) && \
 	docker cp $(TMP_CONTAINER):$(CONTAINER_FRONTEND_LOG_DIR) $(LOG_DIR); \
-	docker rm $(TMP_CONTAINER)
+	docker rm $(TMP_CONTAINER) > /dev/null
+
+logs_remote:
+	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info 'cd wishlist && make logs_local' && \
+	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/ .
 
 cert_new: stop
 	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
@@ -63,14 +69,30 @@ cert_new: stop
 cert_renew: stop
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
 
-logs_nginx_access: logs
-	cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
-logs_nginx_error: logs
-	cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-error.log
+logs_nginx_access: $(LOG_PRODUCER)
+	$(CMD_ACCESS_LOGS)
 
-logs_backend: logs
-	cat $(LOG_DIR)/log/output.log
+logs_nginx_error: $(LOG_PRODUCER)
+	@cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-error.log
+
+logs_backend: $(LOG_PRODUCER)
+	@cat $(LOG_DIR)/log/output.log
+
+referrers: $(LOG_PRODUCER)
+	$(CMD_ACCESS_LOGS) | awk -F ' ' '{ print $$11 };' | sort | uniq -c | sort -n -r
+
+accessed_pages: $(LOG_PRODUCER)
+	$(CMD_ACCESS_LOGS) | awk -F ' ' '{ print $$7 };' | sort | uniq -c | sort -n -r
+
+accessing_ips: $(LOG_PRODUCER)
+	$(CMD_ACCESS_LOGS) | awk -F ' '  '{ print $$1 };' | sort | uniq -c | sort -n -r
+
+http_codes: $(LOG_PRODUCER)
+	$(CMD_ACCESS_LOGS) | awk -F ' ' '$$9 ~ /^[0-9]+$$/ { print $$9 };' | sort | uniq -c | sort -n -r
+
+goaccess: $(LOG_PRODUCER)
+	goaccess $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
 clean:
 	docker image prune -f --filter label=stage=wishlist-build; \
