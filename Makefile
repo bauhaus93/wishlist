@@ -83,12 +83,15 @@ cert_renew: stop
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
 
 logs_nginx_access: $(LOG_PRODUCER)
+	mkdir -p ./logs/nginx && \
 	$(CMD_ACCESS_LOGS)
 
 logs_nginx_error: $(LOG_PRODUCER)
+	mkdir -p ./logs/nginx && \
 	@cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-error.log
 
 logs_backend: $(LOG_PRODUCER)
+	mkdir -p ./logs/log && \
 	@cat $(LOG_DIR)/log/output.log
 
 stats: $(LOG_PRODUCER)
