@@ -20,7 +20,7 @@ rebuild: backend_base backend frontend_base frontend
 
 build: backend frontend nginx_conf
 
-update: stop pull frontend nginx_conf up
+update: stop pull frontend nginx_conf service
 
 backend:
 	docker build -t schlemihl/$(PROJECT_NAME)-backend -f $(PWD)/docker/backend/Dockerfile $(BACKEND_DIR)
