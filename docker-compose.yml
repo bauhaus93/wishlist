@@ -25,9 +25,9 @@ services:
       - 443:443
     volumes:
       - frontend_nginx_conf:/etc/nginx
-      - frontend_public:/var/www
       - log_nginx:/var/log/nginx
       - letsencrypt_volume:/etc/letsencrypt
+      - www_volume:/var/frontend/www
 
 networks:
   backend:
@@ -38,3 +38,4 @@ volumes:
   log_nginx:
   log_backend:
   letsencrypt_volume:
+  www_volume:

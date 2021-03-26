@@ -80,8 +80,51 @@ view model =
     let
         direct_buttons =
             case model.max_page of
-                Just max ->
-                    List.map (\i -> view_page_entry i model.curr_page) (List.range 1 max)
+                Just max_page ->
+                    let
+                        min_ =
+                            case model.curr_page of
+                                1 ->
+                                    []
+
+                                _ ->
+                                    [ 1 ]
+
+                        max_ =
+                            if model.curr_page == max_page then
+                                []
+
+                            else
+                                [ max_page ]
+
+                        range_sub =
+                            List.range 2 (model.curr_page - 1)
+                                |> List.reverse
+                                |> List.take
+                                    (3
+                                        + 3
+                                        - (Basics.max 0 (max_page - model.curr_page - 1)
+                                            |> Basics.min 3
+                                          )
+                                    )
+                                |> List.reverse
+
+                        range_top =
+                            List.range (model.curr_page + 1) (max_page - 1)
+                                |> List.take
+                                    (3
+                                        + 3
+                                        - (Basics.max 0 (model.curr_page - 1)
+                                            |> Basics.min 3
+                                          )
+                                    )
+
+                        range =
+                            List.foldr (++)
+                                []
+                                [ min_, range_sub, [ model.curr_page ], range_top, max_ ]
+                    in
+                    List.map (\i -> view_page_entry i model.curr_page) range
 
                 Nothing ->
                     []

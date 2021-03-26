@@ -9,15 +9,17 @@ CONTAINER_BACKEND_LOG_DIR = /app/log
 CONTAINER_FRONTEND_LOG_DIR = /var/log/nginx
 CONTAINER_LETSENCRYPT_DIR = /etc/letsencrypt
 VOLUME_LETSENCRYPT = wishlist_letsencrypt_volume
+VOLUME_WWW = wishlist_www_volume
 TMP_CONTAINER = container-tmp
-LOG_PRODUCER=logs_remote
-CMD_ACCESS_LOGS=@cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
+LOG_PRODUCER = logs_remote
+CMD_ACCESS_LOGS = @cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
+NGINX_CONF = nginx-test.conf
 
-.PHONY: backend_base backend frontend_base frontend frontend_volumes rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert
+.PHONY: backend_base backend frontend frontend_base nginx_conf rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert remote
 
 rebuild: backend_base backend frontend_base frontend
 
-build: backend frontend
+build: backend frontend nginx_conf
 
 backend:
 	docker build -t schlemihl/$(PROJECT_NAME)-backend -f $(PWD)/docker/backend/Dockerfile $(BACKEND_DIR)
@@ -28,17 +30,16 @@ backend_base:
 publish: backend
 	docker push schlemihl/wishlist-backend:latest
 
-frontend: frontend_volumes
-	npm --prefix $(FRONTEND_DIR) run build
+frontend: frontend_base
+	docker container run -it --rm -v "$(VOLUME_WWW):/var/frontend/www" frontend-www-builder
 
 frontend_base:
-	npm --prefix $(FRONTEND_DIR) install
+	docker image build -t frontend-www-builder $(FRONTEND_DIR)
 
-frontend_volumes:
-	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx -v $(PROJECT_NAME)_frontend_public:/var/www alpine && \
-	docker cp $(NGINX_DIR)/nginx.conf $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
-	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types && \
-	docker cp $(WWW_DIR) $(TMP_CONTAINER):/var; \
+nginx_conf:
+	docker container create --name $(TMP_CONTAINER) -v $(PROJECT_NAME)_frontend_nginx_conf:/etc/nginx alpine && \
+	docker cp $(NGINX_DIR)/$(NGINX_CONF) $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
+	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types; \
 	docker rm $(TMP_CONTAINER)
 
 service:
@@ -60,7 +61,8 @@ logs_local:
 
 logs_remote:
 	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info 'cd wishlist && make logs_local' && \
-	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/ .
+	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/nginx/$(PROJECT_NAME)-*.log  ./logs/nginx
+	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/log/output.log  ./logs/log
 
 cert_new: stop
 	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
@@ -68,7 +70,6 @@ cert_new: stop
 
 cert_renew: stop
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
-
 
 logs_nginx_access: $(LOG_PRODUCER)
 	$(CMD_ACCESS_LOGS)
@@ -79,20 +80,11 @@ logs_nginx_error: $(LOG_PRODUCER)
 logs_backend: $(LOG_PRODUCER)
 	@cat $(LOG_DIR)/log/output.log
 
-referrers: $(LOG_PRODUCER)
-	$(CMD_ACCESS_LOGS) | awk -F ' ' '{ print $$11 };' | sort | uniq -c | sort -n -r
+stats: $(LOG_PRODUCER)
+	goaccess --log-format=COMBINED $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
-accessed_pages: $(LOG_PRODUCER)
-	$(CMD_ACCESS_LOGS) | awk -F ' ' '{ print $$7 };' | sort | uniq -c | sort -n -r
-
-accessing_ips: $(LOG_PRODUCER)
-	$(CMD_ACCESS_LOGS) | awk -F ' '  '{ print $$1 };' | sort | uniq -c | sort -n -r
-
-http_codes: $(LOG_PRODUCER)
-	$(CMD_ACCESS_LOGS) | awk -F ' ' '$$9 ~ /^[0-9]+$$/ { print $$9 };' | sort | uniq -c | sort -n -r
-
-goaccess: $(LOG_PRODUCER)
-	goaccess $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
+remote:
+	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info
 
 clean:
 	docker image prune -f --filter label=stage=wishlist-build; \
