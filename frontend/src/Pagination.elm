@@ -5,7 +5,7 @@ import ButtonGroup exposing (view_button, view_button_group)
 import Dict
 import Error
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as D
@@ -75,6 +75,76 @@ update msg model =
                     ( { model | last_error = Just (Error.HttpRequest e) }, Cmd.none )
 
 
+prepend_missing_head : Int -> List Int -> List Int
+prepend_missing_head n list =
+    case List.head list of
+        Just h ->
+            case h of
+                1 ->
+                    list
+
+                _ ->
+                    1 :: list
+
+        Nothing ->
+            [ 1 ]
+
+
+append_missing_tail : Int -> List Int -> List Int
+append_missing_tail n list =
+    case List.reverse list |> List.head of
+        Just t ->
+            if t /= n then
+                list ++ [ n ]
+
+            else
+                list
+
+        Nothing ->
+            [ n ]
+
+
+extend_to_length : Int -> Int -> List Int -> List Int
+extend_to_length max_item max_len list =
+    let
+        head =
+            List.head list |> Maybe.withDefault 1
+
+        last =
+            List.reverse list |> List.head |> Maybe.withDefault max_item
+
+        inc_head =
+            if head == 1 then
+                1
+
+            else
+                0
+
+        inc_last =
+            if last == max_item then
+                1
+
+            else
+                0
+
+        ext_size =
+            max 0 (max_len - (List.length list - inc_head - inc_last))
+    in
+    case ext_size of
+        0 ->
+            list
+
+        _ ->
+            case head of
+                1 ->
+                    List.range (last + 1) (last + ext_size)
+                        |> (++) list
+
+                h ->
+                    List.range (h - ext_size) (h - 1)
+                        |> (\l -> l ++ list)
+
+
 view : Model a -> Html (Msg a)
 view model =
     let
@@ -82,47 +152,11 @@ view model =
             case model.max_page of
                 Just max_page ->
                     let
-                        min_ =
-                            case model.curr_page of
-                                1 ->
-                                    []
-
-                                _ ->
-                                    [ 1 ]
-
-                        max_ =
-                            if model.curr_page == max_page then
-                                []
-
-                            else
-                                [ max_page ]
-
-                        range_sub =
-                            List.range 2 (model.curr_page - 1)
-                                |> List.reverse
-                                |> List.take
-                                    (2
-                                        + 2
-                                        - (Basics.max 0 (max_page - model.curr_page - 1)
-                                            |> Basics.min 2
-                                          )
-                                    )
-                                |> List.reverse
-
-                        range_top =
-                            List.range (model.curr_page + 1) (max_page - 1)
-                                |> List.take
-                                    (2
-                                        + 2
-                                        - (Basics.max 0 (model.curr_page - 1)
-                                            |> Basics.min 2
-                                          )
-                                    )
-
                         range =
-                            List.foldr (++)
-                                []
-                                [ min_, range_sub, [ model.curr_page ], range_top, max_ ]
+                            List.range (max 1 (model.curr_page - 2)) (min max_page (model.curr_page + 2))
+                                |> extend_to_length max_page 5
+                                |> prepend_missing_head 1
+                                |> append_missing_tail max_page
                     in
                     List.map (\i -> view_page_entry i model.curr_page) range
 

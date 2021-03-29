@@ -37,7 +37,7 @@ view_button_dropdown msg selected label_string =
 
 view_button_group : List (Html msg) -> Html msg
 view_button_group grouped_buttons =
-    div [ class "btn-group btn-group-toggle", attribute "data-toggle" "buttons" ] grouped_buttons
+    div [ class "btn-group d-flex btn-group-toggle", attribute "data-toggle" "buttons" ] grouped_buttons
 
 
 view_button_group_dropdown : String -> List (Html msg) -> Html msg

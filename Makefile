@@ -95,7 +95,7 @@ logs_backend: $(LOG_PRODUCER)
 	@cat $(LOG_DIR)/log/output.log
 
 stats: $(LOG_PRODUCER)
-	goaccess --log-format=COMBINED $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
+	goaccess --geoip-database /usr/share/GeoIP/GeoIP.dat --log-format=COMBINED $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
 remote:
 	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info
