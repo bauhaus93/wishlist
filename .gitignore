@@ -4,6 +4,7 @@ target/
 elm-stuff/
 logs/
 build/
+backup/
 package-lock.json
 Cargo.lock
 elm.min.js

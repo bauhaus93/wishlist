@@ -14,13 +14,16 @@ TMP_CONTAINER = container-tmp
 LOG_PRODUCER = logs_remote
 CMD_ACCESS_LOGS = cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
 
-.PHONY: backend_base backend frontend frontend_base nginx_conf nginx_conf_test rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert remote
+.PHONY: backend_base backend frontend frontend_base nginx_conf nginx_conf_test rebuild build cleanup service stop status logs_remote logs_local logs_nginx_access logs_nginx_error logs_backend tags cert remote backup
 
 rebuild: backend_base backend frontend_base frontend
 
 build: backend frontend nginx_conf
 
 update: stop pull frontend nginx_conf service
+
+backup:
+	./scripts/db_backup.sh
 
 backend:
 	docker build -t schlemihl/$(PROJECT_NAME)-backend -f $(PWD)/docker/backend/Dockerfile $(BACKEND_DIR)
