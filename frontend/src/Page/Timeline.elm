@@ -75,7 +75,7 @@ view model =
         div []
             [ wrap_row_col <| view_iframe <| mongodb_chart_url model.active_timespan
             , wrap_row_col <|
-                div [ class "fixed-bottom my-3 mx-3" ]
+                div [ class "my-3 mx-3" ]
                     [ view_request_buttons model.active_timespan
                     ]
             ]
