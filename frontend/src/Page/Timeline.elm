@@ -24,29 +24,33 @@ type alias Model =
     }
 
 
-type ActiveTimespan
-    = Last30Days
-    | Last100Days
-    | Overall
+type alias ActiveTimespan =
+    Maybe Int
 
 
 type Msg
-    = RequestLast30Days
-    | RequestLast100Days
-    | RequestOverall
+    = RequestDays (Maybe Int)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RequestLast30Days ->
-            ( { model | active_timespan = Last30Days }, Cmd.none )
+        RequestDays maybe_days ->
+            case maybe_days of
+                Just 7 ->
+                    ( { model | active_timespan = Just 7 }, Cmd.none )
 
-        RequestLast100Days ->
-            ( { model | active_timespan = Last100Days }, Cmd.none )
+                Just 30 ->
+                    ( { model | active_timespan = Just 30 }, Cmd.none )
 
-        RequestOverall ->
-            ( { model | active_timespan = Overall }, Cmd.none )
+                Just 100 ->
+                    ( { model | active_timespan = Just 100 }, Cmd.none )
+
+                Just _ ->
+                    ( { model | active_timespan = Nothing }, Cmd.none )
+
+                Nothing ->
+                    ( { model | active_timespan = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -57,13 +61,19 @@ subscriptions model =
 mongodb_chart_url : ActiveTimespan -> String
 mongodb_chart_url timespan =
     case timespan of
-        Last30Days ->
+        Just 7 ->
+            "https://charts.mongodb.com/charts-wishlist-xmzdv/embed/charts?id=67d9bea7-37c5-4aca-9e94-5dc010326426&theme=light"
+
+        Just 30 ->
             "https://charts.mongodb.com/charts-wishlist-xmzdv/embed/charts?id=8d0bc72b-671b-4fd2-8bee-156fd2552509&theme=light"
 
-        Last100Days ->
+        Just 100 ->
             "https://charts.mongodb.com/charts-wishlist-xmzdv/embed/charts?id=da638af3-b241-4ec6-bb67-016b38fc1c25&theme=light"
 
-        Overall ->
+        Just _ ->
+            "https://charts.mongodb.com/charts-wishlist-xmzdv/embed/charts?id=f5f9b659-0945-4566-acc5-4b661d347010&theme=light"
+
+        Nothing ->
             "https://charts.mongodb.com/charts-wishlist-xmzdv/embed/charts?id=f5f9b659-0945-4566-acc5-4b661d347010&theme=light"
 
 
@@ -92,9 +102,10 @@ view_request_buttons active_timespan =
     let
         buttons : (Msg -> Bool -> String -> Html Msg) -> List (Html Msg)
         buttons wrap_fn =
-            [ wrap_fn RequestLast30Days (active_timespan == Last30Days) "{{ LABEL.LAST_30DAYS }}"
-            , wrap_fn RequestLast100Days (active_timespan == Last100Days) "{{ LABEL.LAST_100DAYS }}"
-            , wrap_fn RequestOverall (active_timespan == Overall) "{{ LABEL.OVERALL }}"
+            [ wrap_fn (RequestDays (Just 7)) (active_timespan == Just 7) "{{ LABEL.LAST_7DAYS }}"
+            , wrap_fn (RequestDays (Just 30)) (active_timespan == Just 30) "{{ LABEL.LAST_30DAYS }}"
+            , wrap_fn (RequestDays (Just 100)) (active_timespan == Just 100) "{{ LABEL.LAST_100DAYS }}"
+            , wrap_fn (RequestDays Nothing) (active_timespan == Nothing) "{{ LABEL.OVERALL }}"
             ]
     in
     wrap_responsive_alternative_sm
@@ -161,7 +172,7 @@ init : Nav.Key -> ( Model, Cmd Msg )
 init nav_key =
     ( { nav_key = nav_key
       , last_error = Nothing
-      , active_timespan = Overall
+      , active_timespan = Nothing
       }
     , Cmd.none
     )
