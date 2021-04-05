@@ -15,12 +15,28 @@ pub async fn handle_get_last_wishlist(client: Arc<Client>) -> Result<Wishlist> {
 }
 
 pub async fn handle_get_newest_products(client: Arc<Client>) -> Result<Vec<Product>> {
-    let options = FindOptions::builder()
-            .sort(doc! {"_id": -1})
-            .projection(doc! {"_id": false, "item_id": false})
-            .limit(10)
-            .build();
-    load_products(&client, None, Some(options)).await
+    let mut product_list = Vec::new();
+    for i in 0..3 {
+        let mut last_wishlist = get_nth_wishlist_reverse(&client, i).await?;
+        load_wishlist(&client, &mut last_wishlist).await?;
+
+        let wl_timestamp = last_wishlist.get_timestamp();
+        let new_products = match last_wishlist.get_products() {
+            Some(products) => {
+                products.iter().filter(|p| p.get_first_seen() == wl_timestamp)
+                .
+                fold(Vec::new(), |mut acc, e| {
+                    acc.push(e.clone());
+                    acc
+                })
+            },
+            None => {
+                Vec::new()
+            }
+        };
+        product_list.extend(new_products);
+    }
+    Ok(product_list)
 }
 
 pub async fn handle_get_archived_products(pagination: PaginationQuery, client: Arc<Client>) -> Result<Vec<Product>> {
@@ -124,12 +140,17 @@ async fn get_wishlist(client: &Client, filter: Option<Document>, options: Option
         .map(|r| Wishlist::from(&r))
 }
 
-async fn get_last_wishlist(client: &Client) -> Result<Wishlist> {
+async fn get_nth_wishlist_reverse(client: &Client, skip_count: i64) -> Result<Wishlist> {
     let options = FindOneOptions::builder()
         .sort(doc! {"timestamp": -1})
+        .skip(Some(skip_count))
         .projection(doc! {"_id": false})
         .build();
     get_wishlist(client, None, Some(options)).await
+}
+
+async fn get_last_wishlist(client: &Client) -> Result<Wishlist> {
+    get_nth_wishlist_reverse(client, 0).await
 }
 
 async fn load_wishlist(client: &Client, wishlist: &mut Wishlist) -> Result<()> {

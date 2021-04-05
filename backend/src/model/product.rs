@@ -31,6 +31,9 @@ impl Product {
     pub fn set_source(&mut self, source: Source) {
         self.source = Some(source);
     }
+    pub fn get_first_seen(&self) -> Option<i32> {
+        self.first_seen
+    }
 }
 
 impl From<&Document> for Product {
