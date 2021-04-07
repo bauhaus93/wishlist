@@ -118,7 +118,7 @@ format_currency unit value =
 
                 n ->
                     "."
-                        ++ (case modBy n 10 == 0 of
+                        ++ (case modBy n 10 == 0 && n /= 10 of
                                 True ->
                                     String.fromInt fractional ++ "0"
 

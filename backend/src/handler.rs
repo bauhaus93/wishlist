@@ -16,7 +16,10 @@ pub async fn handle_get_last_wishlist(client: Arc<Client>) -> Result<Wishlist> {
 
 pub async fn handle_get_newest_products(client: Arc<Client>) -> Result<Vec<Product>> {
     let mut product_list = Vec::new();
-    for i in 0..3 {
+
+    let mut c = 0;
+    let mut i = 0;
+    while c < 3 && i < 10 {
         let mut last_wishlist = get_nth_wishlist_reverse(&client, i).await?;
         load_wishlist(&client, &mut last_wishlist).await?;
 
@@ -34,7 +37,11 @@ pub async fn handle_get_newest_products(client: Arc<Client>) -> Result<Vec<Produ
                 Vec::new()
             }
         };
-        product_list.extend(new_products);
+        if new_products.len() > 0 {
+            c+= 1;
+            product_list.extend(new_products);
+        }
+        i+= 1;
     }
     Ok(product_list)
 }
