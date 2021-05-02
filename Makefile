@@ -82,11 +82,11 @@ logs_remote:
 	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/nginx/$(PROJECT_NAME)-*.log  ./logs/nginx
 	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/log/output.log  ./logs/log
 
-cert_new: stop
+cert_new:
 	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d winglers-liste.info -d www.winglers-liste.info
 
-cert_renew: stop
+cert_renew:
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
 
 logs_nginx_access: $(LOG_PRODUCER)
