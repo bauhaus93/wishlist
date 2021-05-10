@@ -57,7 +57,7 @@ nginx_conf_test:
 	docker rm $(TMP_CONTAINER)
 
 service:
-	docker-compose --env-file .env -p $(PROJECT_NAME) up
+	docker-compose --env-file .env -p $(PROJECT_NAME) up -d
 
 pull:
 	docker pull schlemihl/$(PROJECT_NAME)-backend && \
