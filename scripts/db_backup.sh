@@ -9,5 +9,6 @@ mkdir -p backup && \
 	mongoexport --uri="$DB_URL"  --collection=source  --out=backup/source.json && \
 	mongoexport --uri="$DB_URL"  --collection=category  --out=backup/category.json && \
 	cd backup && \
-	tar cvzf "wishlist_backup_$TIMESTAMP.tar.gz" *.json
+	tar cvzf "wishlist_backup_$TIMESTAMP.tar.gz" *.json && \
+	rm *.json
 
