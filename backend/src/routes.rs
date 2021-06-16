@@ -30,30 +30,6 @@ macro_rules! reply_future_with_query {
     };
 }
 
-macro_rules! reply_future_pagination {
-    ($content_function:ident, $count_function:ident) => {{
-        | query, db: Arc<Client> | async move  {
-            match $content_function(query, db.clone()).await {
-                Ok(output) => {
-                    let reply = warp::reply::json(&output);
-                    let count = match $count_function(db).await {
-                        Ok(c) => c,
-                        Err(e) => {
-                            error!("Could not get # of items for pagination: {}", e);
-                            0
-                        }
-                    };
-                    Ok(warp::reply::with_header(reply, "X-Paging-TotalRecordCount", count))
-                },
-                Err(e)  => {
-                    Err(warp::reject::custom(e))
-                }
-            }
-        }}
-    };
-}
-
-
 
 pub async fn create_routes(db: Arc<Client>) -> Result<impl warp::Filter<Extract = impl warp::Reply> + Clone> {
 
@@ -84,7 +60,7 @@ pub async fn create_routes(db: Arc<Client>) -> Result<impl warp::Filter<Extract 
         .and(warp::path::end())
         .and(warp::query())
         .and(with_db.clone())
-        .and_then(reply_future_pagination!(handle_get_archived_products, handle_get_archive_product_count));
+        .and_then(reply_future_with_query!(handle_get_archived_products));
 
     let route_get_products_by_category_name = warp::get()
         .and(warp::path("api"))

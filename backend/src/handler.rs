@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tokio::stream::StreamExt;
 
 use super::{Result, Error};
-use crate::query::{CategoryQuery, PaginationQuery};
+use crate::query::{CategoryQuery, ListQuery};
 use crate::model::{Category, Source, Wishlist, Product};
 
 pub async fn handle_get_last_wishlist(client: Arc<Client>) -> Result<Wishlist> {
@@ -46,7 +46,7 @@ pub async fn handle_get_newest_products(client: Arc<Client>) -> Result<Vec<Produ
     Ok(product_list)
 }
 
-pub async fn handle_get_archived_products(pagination: PaginationQuery, client: Arc<Client>) -> Result<Vec<Product>> {
+pub async fn handle_get_archived_products(list: ListQuery, client: Arc<Client>) -> Result<Vec<Product>> {
     let last_wishlist = get_last_wishlist(&client).await?;
     let product_ids = last_wishlist
         .get_product_ids()
@@ -57,8 +57,8 @@ pub async fn handle_get_archived_products(pagination: PaginationQuery, client: A
     let options = FindOptions::builder()
         .sort(doc! { "_id": -1})
         .projection(doc! {"_id": false, "item_id": false})
-        .skip(pagination.get_offset() as i64)
-        .limit(pagination.get_per_page() as i64)
+        .skip(list.get_offset() as i64)
+        .limit(list.get_size() as i64)
         .build();
     load_products(&client, Some(filter), Some(options)).await
 }

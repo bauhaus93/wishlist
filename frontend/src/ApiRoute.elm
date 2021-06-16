@@ -15,8 +15,8 @@ type ApiRoute
 
 
 type alias ArchiveQuery =
-    { page : Maybe Int
-    , per_page : Maybe Int
+    { offset : Maybe Int
+    , size : Maybe Int
     }
 
 
@@ -43,7 +43,7 @@ category_query =
 
 archive_query : Query.Parser ArchiveQuery
 archive_query =
-    Query.map2 ArchiveQuery (Query.int "page") (Query.int "per_page")
+    Query.map2 ArchiveQuery (Query.int "offset") (Query.int "size")
 
 
 parser : Parser (ApiRoute -> a) a
@@ -90,8 +90,8 @@ to_string route =
         query_pieces =
             case route of
                 ProductArchive q ->
-                    [ ( "page", String.fromInt <| Maybe.withDefault 1 q.page )
-                    , ( "per_page", String.fromInt <| Maybe.withDefault 10 q.per_page )
+                    [ ( "offset", String.fromInt <| Maybe.withDefault 0 q.offset )
+                    , ( "size", String.fromInt <| Maybe.withDefault 10 q.size )
                     ]
 
                 ProductsByCategory q ->

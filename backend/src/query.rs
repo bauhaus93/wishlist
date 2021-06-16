@@ -1,11 +1,11 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct PaginationQuery {
-    #[serde(default = "default_page")]
-    page: u64,
-    #[serde(default = "default_page_size")]
-    per_page: u64,
+pub struct ListQuery {
+    #[serde(default = "default_offset")]
+    offset: u64,
+    #[serde(default = "default_size")]
+    size: u64,
 }
 
 #[derive(Deserialize)]
@@ -14,16 +14,12 @@ pub struct CategoryQuery {
     category: Option<String>,
 }
 
-impl PaginationQuery {
+impl ListQuery {
     pub fn get_offset(&self) -> u64 {
-        if self.page <= 1 {
-            0
-        } else {
-            (self.page - 1) * self.per_page
-        }
+        self.offset
     }
-    pub fn get_per_page(&self) -> u64 {
-        self.per_page
+    pub fn get_size(&self) -> u64 {
+        self.size
     }
 }
 
@@ -36,10 +32,10 @@ impl CategoryQuery {
     }
 }
 
-fn default_page() -> u64 {
-    1
+fn default_offset() -> u64 {
+    0
 }
 
-fn default_page_size() -> u64 {
+fn default_size() -> u64 {
     10
 }

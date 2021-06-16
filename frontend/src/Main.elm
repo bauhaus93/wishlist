@@ -83,7 +83,13 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model of
+        Archive sub_model ->
+            Archive.subscriptions sub_model
+                |> Sub.map GotArchiveMsg
+
+        _ ->
+            Sub.none
 
 
 view : Model -> Browser.Document Msg

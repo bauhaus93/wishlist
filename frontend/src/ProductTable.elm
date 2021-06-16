@@ -16,7 +16,7 @@ view_product_table shorten_names products =
     in
     div [ class "table-responsive" ]
         [ table [ class "table table-sm" ]
-            [ tbody [] item_views ]
+            [ tbody [ class "infinite-scroll" ] item_views ]
         ]
 
 
