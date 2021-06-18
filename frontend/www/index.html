@@ -30,10 +30,7 @@
       let app = Elm.Main.init({ node: document.getElementById("elm-app") });
       let sleep = false;
 
-      $(window).scroll(function () {
-        if (sleep) {
-          return;
-        }
+      function check_bottom() {
         const scrollables = document.getElementsByClassName("infinite-scroll");
         for (const scrollable_table of scrollables) {
           const rows = scrollable_table.getElementsByTagName("tr");
@@ -45,10 +42,17 @@
             app.ports.message_receiver.send("scroll_bottom");
           }
         }
-        sleep = true;
-        setTimeout(function () {
-          sleep = false;
-        }, 250);
+      }
+
+      $(window).scroll(function () {
+        if (!sleep) {
+          sleep = true;
+          check_bottom();
+          setTimeout(function () {
+            check_bottom();
+            sleep = false;
+          }, 500);
+        }
       });
     </script>
     <script

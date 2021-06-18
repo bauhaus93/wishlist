@@ -63,7 +63,7 @@ init : (Int -> Int -> ApiRoute) -> D.Decoder a -> Model a
 init request_route decoder =
     { items = []
     , last_error = Nothing
-    , load_size = 10
+    , load_size = 20
     , is_loading = False
     , all_loaded = False
     , request_route = request_route
