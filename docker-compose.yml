@@ -28,6 +28,7 @@ services:
       - log_nginx:/var/log/nginx
       - letsencrypt_volume:/etc/letsencrypt
       - www_volume:/var/frontend/www
+      - ssr_volume:/var/frontend/ssr
 
 networks:
   backend:
@@ -39,3 +40,4 @@ volumes:
   log_backend:
   letsencrypt_volume:
   www_volume:
+  ssr_volume:
