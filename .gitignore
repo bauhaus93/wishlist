@@ -10,3 +10,4 @@ Cargo.lock
 elm.min.js
 tags
 *.pem
+report.html
