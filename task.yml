@@ -1,0 +1,33 @@
+- name: upgrade
+  gather_facts: yes
+  hosts: aws_wishlist
+  remote_user: ec2-user
+  tasks:
+    - name: Update System
+      command: "sudo yum update -y"
+
+    - name: Update Wishlist
+      ansible.builtin.shell:
+        cmd: "make stop && git pull && make pull frontend service"
+        chdir: wishlist
+
+    - name: Check Started
+      ansible.builtin.shell:
+        cmd: "make status"
+        chdir: wishlist
+      register: output
+
+    - ansible.builtin.assert:
+        that:
+          - output.stdout is search("wishlist_backend_1")
+          - output.stdout is search("wishlist_frontend_1")
+          - not output.stdout is search("Down")
+    - name: Check reachable
+      ansible.builtin.shell:
+        cmd: "curl --connect-timeout 10 --silent --show-error 0.0.0.0:{{ item }}"
+        warn: no
+      register: output
+      failed_when: not output.rc in [0]
+      loop:
+        - 80
+        - 443

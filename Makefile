@@ -88,13 +88,13 @@ logs_local:
 	docker rm $(TMP_CONTAINER) > /dev/null
 
 logs_remote:
-	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info 'cd wishlist && make logs_local' && \
-	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/nginx/$(PROJECT_NAME)-*.log  ./logs/nginx
-	scp -r -i "wishlist-scrape.pem" ec2-user@winglers-liste.info:/home/ec2-user/wishlist/logs/log/output.log  ./logs/log
+	ssh -i "wishlist-scrape.pem" ec2-user@54.93.175.160 'cd wishlist && make logs_local' && \
+	scp -r -i "wishlist-scrape.pem" ec2-user@54.93.175.160:/home/ec2-user/wishlist/logs/nginx/$(PROJECT_NAME)-*.log  ./logs/nginx
+	scp -r -i "wishlist-scrape.pem" ec2-user@54.93.175.160:/home/ec2-user/wishlist/logs/log/output.log  ./logs/log
 
 cert_new:
 	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
-	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d winglers-liste.info -d www.winglers-liste.info
+	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d 54.93.175.160
 
 cert_renew:
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
@@ -116,7 +116,7 @@ stats: $(LOG_PRODUCER)
 	firefox report.html &
 
 remote:
-	ssh -i "wishlist-scrape.pem" ec2-user@winglers-liste.info
+	ssh -i "wishlist-scrape.pem" ec2-user@54.93.175.160
 
 clean:
 	docker image prune -f --filter label=stage=wishlist-build; \
