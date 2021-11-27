@@ -15,7 +15,7 @@ pipeline {
 		stage("Build image") {
 			dir ("backend") {
 				sh cp "../docker/backend/Dockerfile" "./Dockerfile"
-				img = docker.build("schlemihl/wishlist-backend")
+				def backend_img = docker.build("schlemihl/wishlist-backend")
 			}
         }
 
