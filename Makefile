@@ -94,7 +94,7 @@ logs_remote:
 
 cert_new:
 	docker volume create --name "$(VOLUME_LETSENCRYPT)" && \
-	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d 54.93.175.160
+	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot certonly --standalone --preferred-challenges http -d wingels-liste.info -d www.wingles-liste.info
 
 cert_renew:
 	docker run -it --rm -p "80:80" -v "$(VOLUME_LETSENCRYPT):/etc/letsencrypt" certbot/certbot renew --quiet
