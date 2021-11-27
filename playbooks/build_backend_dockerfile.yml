@@ -1,0 +1,26 @@
+- name: deploy_backend
+  gather_facts: yes
+  hosts: backend_build_host
+  remote_user: "{{ lookup('env', 'BACKEND_BUILD_USER') }}"
+  tasks:
+    - name: Create temporary build directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: build
+      register: temp_dir
+
+    - name: Clone git repository into temporary build directory
+      ansible.builtin.git:
+        repo: "https://github.com/bauhaus93/wishlist"
+        dest: "{{ temp_dir }}"
+        clone: yes
+        update: yes
+
+    - name: Build & push backend docker image
+      community.docker.docker_image:
+        build:
+          path: "{{ temp_dir }}/backend"
+          dockerfile: "../docker/backend/Dockerfile"
+        name: "{{ lookup('env', 'BACKEND_DOCKER_IMAGE') }}"
+        push: yes
+        source: build

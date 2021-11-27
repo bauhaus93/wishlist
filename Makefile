@@ -14,8 +14,6 @@ VOLUME_WWW = wishlist_www_volume
 TMP_CONTAINER = container-tmp
 LOG_PRODUCER = logs_remote
 CMD_ACCESS_LOGS = cat $(LOG_DIR)/nginx/$(PROJECT_NAME)-access.log
-SSR_WIDTH = 1920
-SSR_HEIGHT = 768
 
 .PHONY: backend_base backend frontend frontend_base \
 	nginx_conf nginx_conf_test \
@@ -59,12 +57,6 @@ nginx_conf_test:
 	docker cp $(NGINX_DIR)/nginx-test.conf $(TMP_CONTAINER):/etc/nginx/nginx.conf && \
 	docker cp $(NGINX_DIR)/mime.types $(TMP_CONTAINER):/etc/nginx/mime.types; \
 	docker rm $(TMP_CONTAINER)
-
-ssr_image:
-	docker image build -t $(PROJECT_NAME)-ssr $(SSR_DIR)
-
-ssr: ssr_image
-	docker container run -it --rm --shm-size="2g" -v $(PROJECT_NAME)_ssr_volume:/var/ssr $(PROJECT_NAME)-ssr
 
 service:
 	docker-compose --env-file .env -p $(PROJECT_NAME) up -d

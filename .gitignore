@@ -9,6 +9,6 @@ package-lock.json
 Cargo.lock
 elm.min.js
 tags
-*.pem
+*.pem*
 report.html
 hosts

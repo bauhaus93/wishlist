@@ -3,12 +3,18 @@
   hosts: aws_wishlist
   remote_user: ec2-user
   tasks:
+    - name: Install Yum packages
+      yum:
+        name:
+          - docker
+        state: latest
+
     - name: Update System
       command: "sudo yum update -y"
 
     - name: Update Wishlist
       ansible.builtin.shell:
-        cmd: "make stop && git pull && make pull frontend service"
+        cmd: "make stop && git pull && make pull nginx_conf frontend cert_renew service"
         chdir: wishlist
 
     - name: Check Started
@@ -24,7 +30,7 @@
           - not output.stdout is search("Down")
     - name: Check reachable
       ansible.builtin.shell:
-        cmd: "curl --connect-timeout 10 --silent --show-error 0.0.0.0:{{ item }}"
+        cmd: "curl --connect-timeout 10 --silent --show-error wingels-liste.info:{{ item }}"
         warn: no
       register: output
       failed_when: not output.rc in [0]
