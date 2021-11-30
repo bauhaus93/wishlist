@@ -1,4 +1,5 @@
 .env
+.terraform*
 node_modules/
 target/
 elm-stuff/
@@ -12,3 +13,4 @@ tags
 *.pem*
 report.html
 hosts
+*.tfstate*

@@ -1,9 +1,0 @@
-- name: Deploy backend
-  gather_facts: yes
-  hosts: aws_wishlist
-  remote_user: ec2-user
-  tasks:
-    - name: Deploy docker images to wishlist server
-      community.docker.docker_image:
-        name: "{{ lookup('env', 'BACKEND_DOCKER_IMAGE') }}"
-        source: pull

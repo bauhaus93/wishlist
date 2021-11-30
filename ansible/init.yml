@@ -1,0 +1,79 @@
+- name: Initialize Instance
+  gather_facts: yes
+  hosts: aws_wishlist
+  remote_user: ec2-user
+  tasks:
+    - name: Update system with yum
+      yum:
+        name: "*"
+        state: latest
+      become: yes
+
+    - name: Install git with yum
+      yum:
+        name:
+          - git
+        state: latest
+      become: yes
+
+    - name: Install docker with amazon linux extras
+      ansible.builtin.shell:
+        cmd: "amazon-linux-extras install -y docker"
+      become: yes
+
+    - name: Install python modules with pip
+      ansible.builtin.pip:
+        name:
+          - docker
+          - requests
+      become: yes
+
+    - name: Start docker daemon
+      ansible.builtin.service:
+        name: docker
+        state: started
+      become: yes
+
+    - name: Clone git repository into temporary build directory
+      ansible.builtin.git:
+        repo: "https://github.com/bauhaus93/wishlist"
+        dest: "~/wishlist"
+        clone: yes
+        update: yes
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups:
+          - docker
+      become: yes
+
+    - name: Pull backend docker image
+      community.docker.docker_image:
+        name: "schlemihl/wishlist-backend"
+        source: pull
+
+    - name: Build frontend builder docker image
+      community.docker.docker_image:
+        build:
+          path: "./wishlist/frontend"
+        name: "frontend-builder"
+        source: build
+
+    - name: Build frontend static files in container
+      community.docker.docker_container:
+        name: "frontend-builder"
+        image: "frontend-builder"
+        state: started
+        auto_remove: yes
+        mounts:
+          - source: "wishlist-www-volume"
+            target: "/var/frontend/www"
+        container_default_behavior: no_defaults
+
+    - name: Build nginx image
+      community.docker.docker_image:
+        build:
+          path: "./nginx"
+        name: "wishlist-nginx"
+        source: build
